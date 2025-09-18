@@ -229,9 +229,9 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ backgroundImageB64 }) => {
       />
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900/75">
-          <div className="text-center">
+          <div className="flex flex-col items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
-            <p className="text-white">{t('virtual_tryon_loading')}</p>
+            <p className="text-white text-center">{t('virtual_tryon_loading')}</p>
           </div>
         </div>
       )}
