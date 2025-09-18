@@ -5,7 +5,7 @@ export default {
   
   // Steps
   'upload_logo_step': '1. Sube tu logo',
-  'keyword_input_step': '2. Cuéntanos sobre tu marca (Opcional)',
+  'keyword_input_step': '2. Describe los elementos y escena de tu marca (Opcional)',
   'style_selector_step': '3. Elige un Estilo',
   
   // Logo uploader
@@ -14,7 +14,7 @@ export default {
   
   // Keywords
   'keywords_placeholder': 'ej., tecnología sostenible, cuidado de mascotas, tostador de café',
-  'keywords_hint': '',
+  'keywords_hint': 'Lista los elementos que quieres en tu escena o describe la configuración de tu marca',
   
   // Style selector
   'style_minimalist': 'Minimalista',

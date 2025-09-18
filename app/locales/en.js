@@ -5,7 +5,7 @@ export default {
   
   // Steps
   'upload_logo_step': '1. Upload your logo',
-  'keyword_input_step': '2. Tell us about your brand (Optional)',
+  'keyword_input_step': '2. Describe your brand elements and scene (Optional)',
   'style_selector_step': '3. Choose a Style',
   
   // Logo uploader
@@ -14,7 +14,7 @@ export default {
   
   // Keywords
   'keywords_placeholder': 'e.g., sustainable tech, pet care, coffee roaster',
-  'keywords_hint': '',
+  'keywords_hint': 'List items you want in your scene or describe your brand settings',
   
   // Style selector
   'style_minimalist': 'Minimalist',
