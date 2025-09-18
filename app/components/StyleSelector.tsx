@@ -24,19 +24,9 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({
   const handleStyleSelect = (styleId: string) => {
     track('style_selected', {
       style: styleId,
-      dimension: dimension,
-      previous_style: selectedStyle || 'none'
+      dimension: dimension
     });
     onStyleSelect(styleId);
-  };
-
-  const handleDimensionChange = (newDimension: '2D' | '3D') => {
-    track('dimension_changed', {
-      from: dimension,
-      to: newDimension,
-      current_style: selectedStyle || 'none'
-    });
-    onDimensionChange(newDimension);
   };
 
   const styles = [
@@ -58,7 +48,7 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({
         {/* Dimension Toggle */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => handleDimensionChange('3D')}
+            onClick={() => onDimensionChange('3D')}
             disabled={disabled}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               dimension === '3D'
@@ -69,7 +59,7 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({
             {t('dimension_3d')}
           </button>
           <button
-            onClick={() => handleDimensionChange('2D')}
+            onClick={() => onDimensionChange('2D')}
             disabled={disabled}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               dimension === '2D'

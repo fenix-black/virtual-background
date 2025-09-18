@@ -35,12 +35,6 @@ const AppContent: React.FC = () => {
   }, [logoPreviewUrl]);
 
   const handleLogoSelect = (file: File) => {
-    // Track logo upload
-    track('logo_uploaded', {
-      file_size_kb: Math.round(file.size / 1024),
-      file_type: file.type
-    });
-    
     setLogoFile(file);
     if (logoPreviewUrl) {
       URL.revokeObjectURL(logoPreviewUrl);
@@ -59,11 +53,10 @@ const AppContent: React.FC = () => {
     setGeneratedImage(null);
     
     // Track generation started
-    track('generation_started', {
+    track('background_generated', {
       style: selectedStyle,
       dimension: dimension,
-      has_keywords: !!keywords,
-      keywords_count: keywords ? keywords.split(' ').length : 0
+      has_keywords: !!keywords
     });
     
     try {
@@ -79,47 +72,21 @@ const AppContent: React.FC = () => {
       const imageB64 = await generateVirtualBackground(logoFile, analysis, selectedStyle, dimension, keywords);
       setGeneratedImage(imageB64);
       setLoadingState(LoadingState.DONE);
-      
-      // Track successful generation
-      track('generation_success', {
-        style: selectedStyle,
-        dimension: dimension,
-        has_keywords: !!keywords,
-        has_analysis: !!analysis
-      });
     } catch (err) {
       const errorMessageKey = err instanceof Error ? err.message : 'UNKNOWN_ERROR';
       const localizedError = t(errorMessageKey as any, t('UNKNOWN_ERROR'));
       setError(localizedError);
       setLoadingState(LoadingState.ERROR);
       setLogoAnalysis(null); // Clear analysis on error to force re-analysis
-      
-      // Track generation failure
-      track('generation_failed', {
-        error: errorMessageKey,
-        style: selectedStyle,
-        dimension: dimension
-      });
     }
   }, [logoFile, selectedStyle, logoAnalysis, dimension, keywords, t]);
 
   const handleRegenerate = () => {
-    // Track regeneration attempt
-    track('regenerate_clicked', {
-      style: selectedStyle,
-      dimension: dimension
-    });
     // Re-run generation, using cached logo analysis if available
     handleGeneration();
   };
 
   const handleStartOver = () => {
-    // Track start over action
-    track('start_over_clicked', {
-      from_state: loadingState,
-      had_result: !!generatedImage
-    });
-    
     setLoadingState(LoadingState.IDLE);
     setLogoFile(null);
     setLogoPreviewUrl(null);

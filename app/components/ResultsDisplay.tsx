@@ -38,14 +38,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ generatedImage, error, 
   };
 
   const handleToggleTryOn = () => {
-    const newState = !isTryingOn;
-    setIsTryingOn(newState);
-    
-    // Track try-on usage
-    track('virtual_tryon_toggled', {
-      action: newState ? 'enabled' : 'disabled',
-      style: styleUsed || 'unknown'
-    });
+    setIsTryingOn(prev => !prev);
   };
 
   if (error) {
