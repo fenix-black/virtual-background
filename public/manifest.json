@@ -1,0 +1,25 @@
+{
+  "name": "Virtual Background Generator",
+  "short_name": "BG Generator",
+  "description": "AI-powered virtual background generator for professional video calls",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/fenix-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/fenix-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["productivity", "utilities", "business"],
+  "lang": "en",
+  "dir": "ltr"
+}
