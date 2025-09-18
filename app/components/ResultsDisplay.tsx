@@ -7,6 +7,7 @@ import { useLocalization } from '../contexts/LocalizationContext';
 import VirtualTryOn from './VirtualTryOn';
 import { TryOnIcon } from './icons/TryOnIcon';
 import { TurnOffIcon } from './icons/TurnOffIcon';
+import { track } from '@vercel/analytics';
 
 interface ResultsDisplayProps {
   generatedImage: string | null;
@@ -22,6 +23,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ generatedImage, error, 
 
   const handleDownload = () => {
     if (generatedImage) {
+      // Track download
+      track('background_downloaded', {
+        style: styleUsed || 'unknown'
+      });
+      
       const link = document.createElement('a');
       link.href = `data:image/png;base64,${generatedImage}`;
       link.download = 'virtual-background.png';
@@ -32,7 +38,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ generatedImage, error, 
   };
 
   const handleToggleTryOn = () => {
-    setIsTryingOn(prev => !prev);
+    const newState = !isTryingOn;
+    setIsTryingOn(newState);
+    
+    // Track try-on usage
+    track('virtual_tryon_toggled', {
+      action: newState ? 'enabled' : 'disabled',
+      style: styleUsed || 'unknown'
+    });
   };
 
   if (error) {

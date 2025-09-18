@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { useLocalization } from '../contexts/LocalizationContext';
+import { track } from '@vercel/analytics';
 
 interface VirtualTryOnProps {
   backgroundImageB64: string;
@@ -27,6 +28,10 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ backgroundImageB64 }) => {
   useEffect(() => {
     let stream: MediaStream | null = null;
     let mounted = true;
+    const sessionStartTime = Date.now();
+    
+    // Track virtual try-on session started
+    track('virtual_tryon_session_started');
 
     // Preload the background image
     const bgImage = new Image();
@@ -51,6 +56,10 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ backgroundImageB64 }) => {
       } catch (err) {
         console.error('Camera access error:', err);
         if (mounted) {
+          // Track camera error
+          track('virtual_tryon_camera_error', {
+            error_type: err instanceof Error ? err.name : 'unknown'
+          });
           setError(t('virtual_tryon_error'));
           setIsLoading(false);
         }
@@ -180,6 +189,13 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ backgroundImageB64 }) => {
     return () => {
       mounted = false;
       clearTimeout(initTimeout);
+      
+      // Track virtual try-on session ended
+      const sessionDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
+      track('virtual_tryon_session_ended', {
+        duration_seconds: sessionDuration,
+        error_occurred: !!error
+      });
       
       if (stream) {
         stream.getTracks().forEach(track => track.stop());

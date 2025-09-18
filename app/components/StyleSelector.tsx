@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useLocalization } from '../contexts/LocalizationContext';
+import { track } from '@vercel/analytics';
 
 interface StyleSelectorProps {
   onStyleSelect: (style: string) => void;
@@ -19,6 +20,24 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({
   onDimensionChange
 }) => {
   const { t } = useLocalization();
+
+  const handleStyleSelect = (styleId: string) => {
+    track('style_selected', {
+      style: styleId,
+      dimension: dimension,
+      previous_style: selectedStyle || 'none'
+    });
+    onStyleSelect(styleId);
+  };
+
+  const handleDimensionChange = (newDimension: '2D' | '3D') => {
+    track('dimension_changed', {
+      from: dimension,
+      to: newDimension,
+      current_style: selectedStyle || 'none'
+    });
+    onDimensionChange(newDimension);
+  };
 
   const styles = [
     { id: 'Cozy', label: t('style_cozy'), description: t('style_cozy_desc') },
@@ -39,7 +58,7 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({
         {/* Dimension Toggle */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onDimensionChange('3D')}
+            onClick={() => handleDimensionChange('3D')}
             disabled={disabled}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               dimension === '3D'
@@ -50,7 +69,7 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({
             {t('dimension_3d')}
           </button>
           <button
-            onClick={() => onDimensionChange('2D')}
+            onClick={() => handleDimensionChange('2D')}
             disabled={disabled}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               dimension === '2D'
@@ -68,7 +87,7 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({
         {styles.map((style) => (
           <button
             key={style.id}
-            onClick={() => !disabled && onStyleSelect(style.id)}
+            onClick={() => !disabled && handleStyleSelect(style.id)}
             disabled={disabled}
             className={`p-5 rounded-xl border transition-all duration-300 text-left ${
               selectedStyle === style.id
