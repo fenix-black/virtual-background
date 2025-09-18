@@ -86,8 +86,13 @@ export async function POST(request: NextRequest) {
       config: { responseModalities: [Modality.IMAGE, Modality.TEXT] },
     });
     
+    // Check if response has candidates and content
+    if (!response.candidates || !response.candidates[0] || !response.candidates[0].content || !response.candidates[0].content.parts) {
+      throw new Error("ERROR_NO_IMAGE_RETURNED");
+    }
+    
     for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData && part.inlineData.mimeType.startsWith('image/')) {
+      if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.startsWith('image/')) {
         return NextResponse.json({ imageBase64: part.inlineData.data });
       }
     }

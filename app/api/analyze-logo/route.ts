@@ -34,12 +34,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const analysis = response.text;
-    if (!analysis) {
+    // Check if response has the text property
+    const analysisText = response.text;
+    if (!analysisText) {
       throw new Error("Failed to get analysis from Gemini.");
     }
 
-    return NextResponse.json({ analysis });
+    return NextResponse.json({ analysis: analysisText });
   } catch (error) {
     console.error("Error analyzing logo style:", error);
     return NextResponse.json(
