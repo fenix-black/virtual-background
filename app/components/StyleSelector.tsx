@@ -21,13 +21,14 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({
   const { t } = useLocalization();
 
   const styles = [
-    { id: 'Minimalist', label: t('style_minimalist'), description: t('style_minimalist_desc') },
-    { id: 'Futuristic', label: t('style_futuristic'), description: t('style_futuristic_desc') },
-    { id: 'Natural', label: t('style_natural'), description: t('style_natural_desc') },
-    { id: 'Corporate', label: t('style_corporate'), description: t('style_corporate_desc') },
-    { id: 'Artistic', label: t('style_artistic'), description: t('style_artistic_desc') },
     { id: 'Cozy', label: t('style_cozy'), description: t('style_cozy_desc') },
-    { id: 'Cartoon', label: t('style_cartoon'), description: t('style_cartoon_desc') },
+    { id: 'Professional', label: t('style_professional'), description: t('style_professional_desc') },
+    { id: 'Natural', label: t('style_natural'), description: t('style_natural_desc') },
+    { id: 'Futuristic', label: t('style_futuristic'), description: t('style_futuristic_desc') },
+    { id: 'Creative', label: t('style_creative'), description: t('style_creative_desc') },
+    { id: 'Urban', label: t('style_urban'), description: t('style_urban_desc') },
+    { id: 'Elegant', label: t('style_elegant'), description: t('style_elegant_desc') },
+    { id: 'Abstract', label: t('style_abstract'), description: t('style_abstract_desc') },
   ];
 
   return (

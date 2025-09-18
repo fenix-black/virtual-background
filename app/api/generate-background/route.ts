@@ -30,26 +30,29 @@ export async function POST(request: NextRequest) {
     // Map style to appropriate output instruction
     let styleOutputInstruction = '';
     switch(selectedStyle) {
-      case 'Minimalist':
-        styleOutputInstruction = 'Create a minimalist background with clean lines, simple color palette, and focus on essential elements.';
+      case 'Cozy':
+        styleOutputInstruction = 'Create a cozy background with warm, home-like spaces that make you feel approachable and relaxed.';
         break;
-      case 'Futuristic':
-        styleOutputInstruction = 'Create a futuristic background with sleek, tech-inspired designs, neon accents and modern geometry.';
+      case 'Professional':
+        styleOutputInstruction = 'Create a professional background with clean and polished look for formal meetings and business calls.';
         break;
       case 'Natural':
-        styleOutputInstruction = 'Create a natural background with organic textures, earthy tones, and elements inspired by nature.';
+        styleOutputInstruction = 'Create a natural background with fresh greenery and soft light that bring a calming, outdoor vibe.';
         break;
-      case 'Corporate':
-        styleOutputInstruction = 'Create a corporate background with a professional, polished look, subtle branding and clean aesthetic.';
+      case 'Futuristic':
+        styleOutputInstruction = 'Create a futuristic background with sleek tech environments, modern lines, lights, and innovation vibes.';
         break;
-      case 'Artistic':
-        styleOutputInstruction = 'Create an artistic background that is creative and expressive with bold colors and abstract shapes.';
+      case 'Creative':
+        styleOutputInstruction = 'Create a creative background with bold colors, artistic shapes, or playful cartoon styles that stand out.';
         break;
-      case 'Cozy':
-        styleOutputInstruction = 'Create a cozy background with warm lighting, soft textures, and a comfortable, inviting atmosphere.';
+      case 'Urban':
+        styleOutputInstruction = 'Create an urban background with modern lofts, city skylines, or coworking vibes with an energetic tone.';
         break;
-      case 'Cartoon':
-        styleOutputInstruction = 'Create a cartoon-style background with a fun, animated look, bold outlines and vibrant colors.';
+      case 'Elegant':
+        styleOutputInstruction = 'Create an elegant background with classic interiors, bookshelves, wood, or refined architectural details.';
+        break;
+      case 'Abstract':
+        styleOutputInstruction = 'Create an abstract background with soft gradients and simple geometric patterns that look stylish yet neutral.';
         break;
       default:
         styleOutputInstruction = 'Create a professional virtual background that matches the chosen style.';
