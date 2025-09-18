@@ -52,8 +52,6 @@ Generate professional virtual backgrounds for video calls that match your brand 
 
 ## Architecture
 
-The application has been refactored from a client-side React app to a Next.js application with:
-
 - **Server-side API routes**: All AI operations using API keys are handled on the server
 - **Client-side canvas operations**: Logo composition remains on the frontend for Vercel compatibility
 - **Optimized for Edge Runtime**: Efficient serverless deployment on Vercel
