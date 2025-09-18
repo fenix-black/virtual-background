@@ -22,132 +22,190 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ backgroundImageB64 }) => {
   const [error, setError] = useState<string | null>(null);
   const segmentationRef = useRef<any>(null);
   const animationIdRef = useRef<number | null>(null);
+  const backgroundImageRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
+    let mounted = true;
+
+    // Preload the background image
+    const bgImage = new Image();
+    bgImage.src = `data:image/png;base64,${backgroundImageB64}`;
+    bgImage.onload = () => {
+      backgroundImageRef.current = bgImage;
+    };
 
     const setupCamera = async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 1280, height: 720 }
+          video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user'
+          }
         });
 
-        if (videoRef.current) {
+        if (videoRef.current && mounted) {
           videoRef.current.srcObject = stream;
         }
       } catch (err) {
         console.error('Camera access error:', err);
-        setError(t('virtual_tryon_error'));
+        if (mounted) {
+          setError(t('virtual_tryon_error'));
+          setIsLoading(false);
+        }
       }
     };
 
     const initSegmentation = async () => {
-      // Wait for MediaPipe to load
-      let attempts = 0;
-      while (!window.SelfieSegmentation && attempts < 20) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-      }
-
-      if (!window.SelfieSegmentation) {
-        setError(t('virtual_tryon_error'));
-        return;
-      }
-
-      const selfieSegmentation = new window.SelfieSegmentation({
-        locateFile: (file: string) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+      try {
+        // Wait for MediaPipe to load
+        let attempts = 0;
+        while (!window.SelfieSegmentation && attempts < 50) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
         }
-      });
 
-      selfieSegmentation.setOptions({
-        modelSelection: 1,
-        selfieMode: true,
-      });
+        if (!window.SelfieSegmentation) {
+          throw new Error('MediaPipe SelfieSegmentation not loaded');
+        }
 
-      selfieSegmentation.onResults(onResults);
-      segmentationRef.current = selfieSegmentation;
+        const selfieSegmentation = new window.SelfieSegmentation({
+          locateFile: (file: string) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
+          }
+        });
+
+        selfieSegmentation.setOptions({
+          modelSelection: 1,  // Use model 1 for better accuracy
+          selfieMode: false,  // Set to false for video stream
+        });
+
+        selfieSegmentation.onResults((results: any) => {
+          if (!mounted) return;
+          onResults(results);
+        });
+
+        segmentationRef.current = selfieSegmentation;
+        
+        // Start processing after setup
+        if (mounted) {
+          processVideo();
+        }
+      } catch (err) {
+        console.error('Segmentation init error:', err);
+        if (mounted) {
+          setError(t('virtual_tryon_error'));
+          setIsLoading(false);
+        }
+      }
     };
 
     const onResults = (results: any) => {
-      if (!canvasRef.current || !videoRef.current) return;
+      if (!canvasRef.current || !backgroundImageRef.current) return;
       
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
+      // Set canvas size to match video
+      canvas.width = results.image.width;
+      canvas.height = results.image.height;
 
-      // Draw background
-      const backgroundImage = new Image();
-      backgroundImage.onload = () => {
-        ctx.save();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      
+      // Clear the canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw the background image
+      ctx.drawImage(backgroundImageRef.current, 0, 0, canvas.width, canvas.height);
+      
+      // Create a temporary canvas for the person
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      if (tempCtx) {
+        // Draw the person on temporary canvas
+        tempCtx.drawImage(results.image, 0, 0);
         
-        // Draw background image
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-
-        // Apply segmentation mask
-        ctx.globalCompositeOperation = 'destination-in';
-        ctx.drawImage(results.segmentationMask, 0, 0, canvas.width, canvas.height);
-
-        // Draw person on top
-        ctx.globalCompositeOperation = 'destination-over';
-        ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+        // Apply the segmentation mask
+        tempCtx.globalCompositeOperation = 'destination-in';
+        tempCtx.drawImage(results.segmentationMask, 0, 0);
         
-        // Draw background behind person
-        ctx.globalCompositeOperation = 'destination-over';
-        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-        
-        ctx.restore();
-      };
-      backgroundImage.src = `data:image/png;base64,${backgroundImageB64}`;
-
+        // Draw the person on the main canvas
+        ctx.drawImage(tempCanvas, 0, 0);
+      }
+      
+      ctx.restore();
       setIsLoading(false);
     };
 
     const processVideo = async () => {
-      if (!segmentationRef.current || !videoRef.current || videoRef.current.readyState !== 4) {
-        animationIdRef.current = requestAnimationFrame(processVideo);
-        return;
-      }
+      const processFrame = async () => {
+        if (!segmentationRef.current || !videoRef.current || !mounted) {
+          return;
+        }
 
-      try {
-        await segmentationRef.current.send({ image: videoRef.current });
-      } catch (error) {
-        console.error('Segmentation error:', error);
-      }
-      
-      animationIdRef.current = requestAnimationFrame(processVideo);
+        if (videoRef.current.readyState === 4) {
+          try {
+            await segmentationRef.current.send({ image: videoRef.current });
+          } catch (error) {
+            console.error('Error processing frame:', error);
+          }
+        }
+        
+        if (mounted) {
+          animationIdRef.current = requestAnimationFrame(processFrame);
+        }
+      };
+
+      // Start the processing loop
+      processFrame();
     };
 
     const init = async () => {
       await setupCamera();
-      await initSegmentation();
-      processVideo();
+      if (mounted) {
+        await initSegmentation();
+      }
     };
 
-    init();
+    // Delay initialization slightly to ensure component is fully mounted
+    const initTimeout = setTimeout(() => {
+      init();
+    }, 100);
 
     return () => {
+      mounted = false;
+      clearTimeout(initTimeout);
+      
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
+      
       if (animationIdRef.current) {
         cancelAnimationFrame(animationIdRef.current);
       }
+      
       if (segmentationRef.current) {
-        segmentationRef.current.close();
+        try {
+          segmentationRef.current.close();
+        } catch (e) {
+          console.error('Error closing segmentation:', e);
+        }
       }
     };
   }, [backgroundImageB64, t]);
 
   if (error) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-800 text-red-400">
-        <p>{error}</p>
+      <div className="w-full h-full flex items-center justify-center bg-gray-800 text-red-400 p-4 text-center">
+        <div>
+          <p className="mb-2">{error}</p>
+          <p className="text-sm text-gray-500">Make sure to allow camera access and try refreshing the page if the issue persists.</p>
+        </div>
       </div>
     );
   }
@@ -160,6 +218,10 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ backgroundImageB64 }) => {
         playsInline
         muted
         className="hidden"
+        onLoadedMetadata={(e) => {
+          const video = e.target as HTMLVideoElement;
+          video.play();
+        }}
       />
       <canvas
         ref={canvasRef}

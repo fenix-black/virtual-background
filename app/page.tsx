@@ -174,13 +174,29 @@ const AppContent: React.FC = () => {
 
 export default function Page() {
   useEffect(() => {
-    // Load MediaPipe script dynamically if not already loaded
-    if (!document.querySelector('script[src*="selfie_segmentation.js"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js';
-      script.crossOrigin = 'anonymous';
-      document.head.appendChild(script);
-    }
+    // Load MediaPipe scripts if not already loaded
+    const loadMediaPipe = async () => {
+      // First load the helper script
+      if (!document.querySelector('script[src="/mediapipe-loader.js"]')) {
+        const helperScript = document.createElement('script');
+        helperScript.src = '/mediapipe-loader.js';
+        document.head.appendChild(helperScript);
+        
+        await new Promise(resolve => {
+          helperScript.onload = resolve;
+        });
+      }
+
+      // Then load MediaPipe
+      if (!document.querySelector('script[src*="selfie_segmentation.js"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js';
+        script.crossOrigin = 'anonymous';
+        document.head.appendChild(script);
+      }
+    };
+
+    loadMediaPipe();
   }, []);
 
   return (
