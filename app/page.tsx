@@ -164,8 +164,22 @@ const AppContent: React.FC = () => {
         <div className="absolute bottom-0 right-1/4 h-96 w-96 bg-purple-600/10 rounded-full blur-3xl"></div>
         <div className="relative z-10 w-full flex flex-col items-center justify-center gap-8">
             {renderContent()}
-            <footer className="text-center text-gray-500 text-sm">
-                {t('made_by')} <a href="https://www.fenixblack.ai" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 transition-colors underline">FenixBlack.ai</a>
+            <footer className="text-center text-sm">
+                <a 
+                    href="https://www.fenixblack.ai" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="group flex flex-col items-center gap-2"
+                >
+                    <img 
+                        src="/ave-solo-alpha.png" 
+                        alt="FenixBlack.ai Logo" 
+                        className="block transition-transform group-hover:scale-105"
+                    />
+                    <span className="text-gray-500 group-hover:text-white transition-colors">
+                        {t('made_by')} FenixBlack.ai
+                    </span>
+                </a>
             </footer>
         </div>
     </main>
