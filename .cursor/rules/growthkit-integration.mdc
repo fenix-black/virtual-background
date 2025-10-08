@@ -1,0 +1,185 @@
+---
+description: Guide for integrating @fenixblack/growthkit widget with language synchronization and credit consumption
+---
+
+# GrowthKit Client-Side Widget Integration Guide
+
+## Installation
+
+```bash
+npm install @fenixblack/growthkit
+# or
+pnpm add @fenixblack/growthkit
+```
+
+## Environment Configuration
+
+Set up your public API key in `.env.local`:
+```
+NEXT_PUBLIC_GROWTHKIT_PUBLIC_KEY=pk_your_public_key_here
+```
+
+> **Important**: Use `NEXT_PUBLIC_GROWTHKIT_PUBLIC_KEY` (not `API_KEY`) - this is the correct environment variable name.
+
+## Basic Integration (KISS Approach)
+
+Integrate directly in your main page component where you have access to language context:
+
+```tsx
+"use client"
+
+import { useRef, useEffect } from "react"
+import { GrowthKitAccountWidget, type GrowthKitAccountWidgetRef } from "@fenixblack/growthkit"
+import { useLanguage } from "@/contexts/language-context"
+
+export default function Page() {
+  const { language } = useLanguage()
+  const growthKitRef = useRef<GrowthKitAccountWidgetRef>(null)
+
+  // Sync GrowthKit language when page language changes
+  useEffect(() => {
+    if (growthKitRef.current) {
+      growthKitRef.current.setLanguage(language)
+    }
+  }, [language])
+
+  return (
+    <GrowthKitAccountWidget
+      ref={growthKitRef}
+      config={{
+        publicKey: process.env.NEXT_PUBLIC_GROWTHKIT_PUBLIC_KEY || '',
+        language: language,
+        theme: 'auto' // 'light' | 'dark' | 'auto'
+      }}
+      position="bottom-right" // 'top-right' | 'top-left' | 'bottom-left' | 'bottom-right'
+      slim={true} // Use minimal display
+    >
+      {/* Your page content */}
+    </GrowthKitAccountWidget>
+  )
+}
+```
+
+## Language Synchronization
+
+The key to language sync is the `useEffect` that watches for language changes:
+
+```tsx
+useEffect(() => {
+  if (growthKitRef.current) {
+    growthKitRef.current.setLanguage(language)
+  }
+}, [language])
+```
+
+This automatically syncs the widget language whenever your page language changes via your language selector.
+
+## Credit Consumption
+
+Access the GrowthKit hook for credit management:
+
+```tsx
+import { useGrowthKit } from "@fenixblack/growthkit"
+
+function MyComponent() {
+  const gk = useGrowthKit()
+  
+  return (
+    <div>
+      <h1>Credits: {gk.credits}</h1>
+      
+      <button 
+        onClick={() => gk.completeAction('generate_content')}
+        disabled={!gk.canPerformAction('generate_content')}
+      >
+        Generate Content (costs credits)
+      </button>
+      
+      <button onClick={() => gk.share()}>
+        Share & Earn Credits
+      </button>
+    </div>
+  )
+}
+```
+
+## Widget Configuration Options
+
+```tsx
+const config = {
+  publicKey: 'pk_your_key_here',    // Required: Your public API key
+  language: 'es' | 'en',            // Widget interface language
+  theme: 'auto' | 'light' | 'dark', // Visual theme
+  debug: false,                     // Enable debug logging
+}
+
+const widgetProps = {
+  position: 'bottom-right',         // Widget position on screen
+  slim: true,                       // Minimal display mode
+  showName: true,                   // Show user's name
+  showEmail: true,                  // Show user's email
+}
+```
+
+## Best Practices
+
+1. **KISS Principle**: Integrate directly in your main component, avoid complex wrapper components
+2. **Environment Variables**: Always use `NEXT_PUBLIC_GROWTHKIT_PUBLIC_KEY` for the public key
+3. **Language Sync**: Use useEffect to watch language changes and call `ref.current.setLanguage()`
+4. **Ref Management**: Create the ref in the same component where you use the widget
+5. **Error Handling**: Always check if `ref.current` exists before calling methods
+
+## Common Patterns
+
+### With Existing Language Context
+```tsx
+const { language, setLanguage } = useLanguage()
+
+// Widget automatically syncs when language changes
+useEffect(() => {
+  if (growthKitRef.current) {
+    growthKitRef.current.setLanguage(language)
+  }
+}, [language])
+```
+
+### Credit-Based Actions
+```tsx
+const handleAction = async () => {
+  if (gk.canPerformAction('expensive_action')) {
+    await gk.completeAction('expensive_action')
+    // Action completed, credits deducted
+  } else {
+    // Show earn credits modal or redirect to pricing
+    gk.share() // Opens share modal to earn credits
+  }
+}
+```
+
+### Referral System
+```tsx
+const handleShare = () => {
+  gk.share() // Opens native share or copies referral link
+}
+
+const referralLink = gk.getReferralLink() // Get shareable link
+```
+
+## TypeScript Support
+
+Import types for full type safety:
+
+```tsx
+import type { 
+  GrowthKitAccountWidgetRef,
+  GrowthKitConfig,
+  Language 
+} from "@fenixblack/growthkit"
+```
+
+## Troubleshooting
+
+- **Widget not appearing**: Check that `NEXT_PUBLIC_GROWTHKIT_PUBLIC_KEY` is set correctly
+- **Language not syncing**: Ensure the useEffect dependency array includes `[language]`
+- **Build errors**: Make sure the component using GrowthKit is marked as `"use client"`
+- **Ref not working**: Create the ref in the same component where the widget is rendered

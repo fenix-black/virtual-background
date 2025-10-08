@@ -10,6 +10,7 @@ Generate professional virtual backgrounds for video calls that match your brand 
 - **2D/3D Options**: Select flat graphical or realistic depth designs
 - **Keyword Guidance**: Add optional keywords to guide the theme
 - **Virtual Try-On**: Test backgrounds with your camera using real-time segmentation
+- **Credit System**: Integrated with GrowthKit for usage-based billing (1 credit per generation)
 - **Multi-language**: Available in English and Spanish
 
 ## Tech Stack
@@ -18,6 +19,7 @@ Generate professional virtual backgrounds for video calls that match your brand 
 - **Styling**: Tailwind CSS
 - **AI**: Google Gemini API
 - **Camera Segmentation**: MediaPipe SelfieSegmentation
+- **Credit System**: GrowthKit integration
 - **Deployment**: Optimized for Vercel
 
 ## Setup
@@ -29,9 +31,10 @@ Generate professional virtual backgrounds for video calls that match your brand 
    ```
 
 3. Set up environment variables:
-   Create a `.env.local` file with your Gemini API key:
+   Create a `.env.local` file with your API keys:
    ```
    GEMINI_API_KEY=your_gemini_api_key_here
+   NEXT_PUBLIC_GROWTHKIT_PUBLIC_KEY=your_growthkit_public_key_here
    ```
 
 4. Run the development server:
@@ -45,9 +48,11 @@ Generate professional virtual backgrounds for video calls that match your brand 
 
 1. Push your code to GitHub
 2. Import your repository in [Vercel](https://vercel.com)
-3. Add the environment variable:
+3. Add the environment variables:
    - Name: `GEMINI_API_KEY`
    - Value: Your Gemini API key
+   - Name: `NEXT_PUBLIC_GROWTHKIT_PUBLIC_KEY`
+   - Value: Your GrowthKit public key
 4. Deploy!
 
 ## Architecture

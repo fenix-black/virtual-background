@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import LogoUploader from './components/LogoUploader';
 import StyleSelector from './components/StyleSelector';
 import LoadingIndicator from './components/LoadingIndicator';
@@ -12,9 +12,12 @@ import { useLocalization, LocalizationProvider } from './contexts/LocalizationCo
 import LanguageSwitcher from './components/LanguageSwitcher';
 import KeywordInput from './components/KeywordInput';
 import { track } from '@vercel/analytics';
+import { GrowthKitAccountWidget, useGrowthKit } from '@fenixblack/growthkit';
+import type { GrowthKitAccountWidgetRef } from '@fenixblack/growthkit';
 
-const AppContent: React.FC = () => {
-  const { t } = useLocalization();
+const AppContent: React.FC<{ accountWidgetRef: React.RefObject<GrowthKitAccountWidgetRef>, currentLanguage: 'en' | 'es', onLanguageToggle: (lang: 'en' | 'es') => void }> = ({ accountWidgetRef, currentLanguage, onLanguageToggle }) => {
+  const { t, language } = useLocalization();
+  const gk = useGrowthKit();
   const [loadingState, setLoadingState] = useState<LoadingState>(LoadingState.IDLE);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
@@ -48,12 +51,40 @@ const AppContent: React.FC = () => {
     if (!logoFile || !selectedStyle) {
       return;
     }
+    
+    // 1. Check if user can perform the action (has enough credits)
+    if (!gk.canPerformAction('generate_background')) {
+      setError(t('insufficientCredits' as any) || 'Not enough credits. Please get more credits.');
+      // Track insufficient credits event
+      gk.track('insufficient_credits', {
+        action: 'generate_background',
+        credits_available: gk.credits
+      });
+      return;
+    }
+
+    // Show immediate feedback - start loading state
     setLoadingState(LoadingState.ANALYZING);
     setError(null);
     setGeneratedImage(null);
+
+    // 2. Consume credits with completeAction (client-side) - in background
+    const success = await gk.completeAction('generate_background', { 
+      usdValue: 0.30  // USD value of the action
+    });
     
-    // Track generation started
-    track('background_generated', {
+    if (!success) {
+      setError(t('creditConsumptionFailed' as any) || 'Failed to process credit payment. Please try again.');
+      setLoadingState(LoadingState.IDLE);
+      // Track failed credit consumption
+      gk.track('credit_consumption_failed', {
+        action: 'generate_background'
+      });
+      return;
+    }
+    
+    // Track generation started with GrowthKit
+    gk.track('background_generated', {
       style: selectedStyle,
       dimension: dimension,
       has_keywords: !!keywords
@@ -78,8 +109,10 @@ const AppContent: React.FC = () => {
       setError(localizedError);
       setLoadingState(LoadingState.ERROR);
       setLogoAnalysis(null); // Clear analysis on error to force re-analysis
+      // Note: Credits are already consumed at this point
+      // Consider refund logic if needed
     }
-  }, [logoFile, selectedStyle, logoAnalysis, dimension, keywords, t]);
+  }, [logoFile, selectedStyle, logoAnalysis, dimension, keywords, t, gk]);
 
   const handleRegenerate = () => {
     // Re-run generation, using cached logo analysis if available
@@ -119,7 +152,7 @@ const AppContent: React.FC = () => {
               <p className="text-lg text-gray-400 mb-6 max-w-2xl mx-auto">
                 {t('app_subtitle')}
               </p>
-              <LanguageSwitcher />
+              <LanguageSwitcher onLanguageToggle={onLanguageToggle} />
             </div>
             <div className="w-full p-8 bg-gray-800/30 backdrop-blur-sm rounded-2xl shadow-2xl shadow-black/50 flex flex-col gap-8 border border-gray-700/50">
               <div>
@@ -159,6 +192,9 @@ const AppContent: React.FC = () => {
             >
                 <SparklesIcon />
                 {t('generate_button')}
+                <span className="ml-2 px-2 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
+                  1 {language === 'es' ? 'crédito' : 'credit'}
+                </span>
             </button>
           </div>
         );
@@ -194,6 +230,57 @@ const AppContent: React.FC = () => {
   );
 };
 
+function HomeContent() {
+  const { language } = useLocalization();
+  const [currentLanguage, setCurrentLanguage] = useState<'en' | 'es'>(language);
+  const accountWidgetRef = useRef<GrowthKitAccountWidgetRef>(null);
+  
+  // Sync with localization context changes
+  useEffect(() => {
+    setCurrentLanguage(language);
+  }, [language]);
+  
+  // Configuration for the widget
+  const config = {
+    debug: process.env.NODE_ENV === 'development',
+    language: currentLanguage,
+    publicKey: process.env.NEXT_PUBLIC_GROWTHKIT_PUBLIC_KEY || '',
+    theme: 'dark' as const,
+  };
+  
+  // Function to handle language switching
+  const handleLanguageToggle = (newLanguage: 'en' | 'es') => {
+    setCurrentLanguage(newLanguage);
+    
+    // Update widget's language programmatically with slight delay
+    setTimeout(() => {
+      accountWidgetRef.current?.setLanguage(newLanguage);
+    }, 100);
+  };
+
+  return (
+    <GrowthKitAccountWidget 
+      config={config}
+      ref={accountWidgetRef}
+      slim={true}
+      position="top-right"
+      theme="dark"
+      onCreditsChange={(credits: number) => {
+        console.log('Credits updated:', credits);
+      }}
+      onProfileChange={(profile: { name?: string; email?: string; verified?: boolean }) => {
+        console.log('Profile updated:', profile);
+      }}
+    >
+      <AppContent 
+        accountWidgetRef={accountWidgetRef}
+        currentLanguage={currentLanguage}
+        onLanguageToggle={handleLanguageToggle}
+      />
+    </GrowthKitAccountWidget>
+  );
+}
+
 export default function Page() {
   useEffect(() => {
     // Load MediaPipe scripts if not already loaded
@@ -223,7 +310,7 @@ export default function Page() {
 
   return (
     <LocalizationProvider>
-      <AppContent />
+      <HomeContent />
     </LocalizationProvider>
   );
 }

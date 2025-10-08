@@ -7,7 +7,7 @@ import { useLocalization } from '../contexts/LocalizationContext';
 import VirtualTryOn from './VirtualTryOn';
 import { TryOnIcon } from './icons/TryOnIcon';
 import { TurnOffIcon } from './icons/TurnOffIcon';
-import { track } from '@vercel/analytics';
+import { useGrowthKit } from '@fenixblack/growthkit';
 
 interface ResultsDisplayProps {
   generatedImage: string | null;
@@ -18,13 +18,14 @@ interface ResultsDisplayProps {
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ generatedImage, error, onRegenerate, onStartOver, styleUsed }) => {
-  const { t } = useLocalization();
+  const { t, language } = useLocalization();
+  const gk = useGrowthKit();
   const [isTryingOn, setIsTryingOn] = useState(false);
 
   const handleDownload = () => {
     if (generatedImage) {
-      // Track download
-      track('background_downloaded', {
+      // Track download with GrowthKit
+      gk.track('background_downloaded', {
         style: styleUsed || 'unknown'
       });
       
@@ -38,6 +39,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ generatedImage, error, 
   };
 
   const handleToggleTryOn = () => {
+    // Track when turning off try-on
+    if (isTryingOn) {
+      // Virtual try-on is being turned off, tracking will be handled by the component
+    }
     setIsTryingOn(prev => !prev);
   };
 
@@ -100,6 +105,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ generatedImage, error, 
             >
                 <RegenerateIcon />
                 {t('regenerate_button')}
+                <span className="ml-1 px-2 py-1 bg-white/20 rounded-full text-xs font-medium backdrop-blur-sm">
+                  1 {language === 'es' ? 'crédito' : 'credit'}
+                </span>
             </button>
              <button
                 onClick={onStartOver}

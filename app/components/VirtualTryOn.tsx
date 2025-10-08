@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { useLocalization } from '../contexts/LocalizationContext';
-import { track } from '@vercel/analytics';
+import { useGrowthKit } from '@fenixblack/growthkit';
 
 interface VirtualTryOnProps {
   backgroundImageB64: string;
@@ -17,6 +17,7 @@ declare global {
 
 const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ backgroundImageB64 }) => {
   const { t } = useLocalization();
+  const gk = useGrowthKit();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,11 +25,13 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ backgroundImageB64 }) => {
   const segmentationRef = useRef<any>(null);
   const animationIdRef = useRef<number | null>(null);
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
+  const sessionStartTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
     let stream: MediaStream | null = null;
     let mounted = true;
-    const sessionStartTime = Date.now();
+    // Reset session start time when component mounts
+    sessionStartTimeRef.current = Date.now();
 
     // Preload the background image
     const bgImage = new Image();
@@ -183,11 +186,14 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ backgroundImageB64 }) => {
       mounted = false;
       clearTimeout(initTimeout);
       
-      // Track virtual try-on session duration
-      const sessionDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
-      track('virtual_tryon_duration', {
-        duration_seconds: sessionDuration
-      });
+      // Track virtual try-on session duration with GrowthKit
+      const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
+      console.log('VirtualTryOn cleanup - Duration:', sessionDuration, 'Start time:', sessionStartTimeRef.current, 'Current time:', Date.now());
+      if (sessionDuration > 0) {
+        gk.track('virtual_tryon_duration', {
+          duration_seconds: sessionDuration
+        });
+      }
       
       if (stream) {
         stream.getTracks().forEach(track => track.stop());

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useLocalization } from '../contexts/LocalizationContext';
-import { track } from '@vercel/analytics';
+import { useGrowthKit } from '@fenixblack/growthkit';
 
 interface StyleSelectorProps {
   onStyleSelect: (style: string) => void;
@@ -20,9 +20,10 @@ const StyleSelector: React.FC<StyleSelectorProps> = ({
   onDimensionChange
 }) => {
   const { t } = useLocalization();
+  const gk = useGrowthKit();
 
   const handleStyleSelect = (styleId: string) => {
-    track('style_selected', {
+    gk.track('style_selected', {
       style: styleId,
       dimension: dimension
     });

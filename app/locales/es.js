@@ -69,5 +69,10 @@ export default {
   'ERROR_GENERATION_FAILED': 'Error al generar el fondo. Por favor, inténtalo de nuevo.',
   'ERROR_SAFETY_BLOCK': 'El contenido fue bloqueado por razones de seguridad. Por favor, prueba con un logo o estilo diferente.',
   'ERROR_NO_IMAGE_RETURNED': 'No se generó ninguna imagen. Por favor, inténtalo de nuevo.',
-  'UNKNOWN_ERROR': 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.'
+  'UNKNOWN_ERROR': 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.',
+  
+  // Credit system
+  'insufficientCredits': 'No tienes suficientes créditos para generar el fondo. Por favor, obtén más créditos.',
+  'creditConsumptionFailed': 'Error al procesar el pago de créditos. Por favor, inténtalo de nuevo.',
+  'creditsRequired': 'Esta acción requiere 1 crédito.'
 };

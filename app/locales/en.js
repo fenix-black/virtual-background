@@ -69,5 +69,10 @@ export default {
   'ERROR_GENERATION_FAILED': 'Failed to generate the background. Please try again.',
   'ERROR_SAFETY_BLOCK': 'The content was blocked for safety reasons. Please try with a different logo or style.',
   'ERROR_NO_IMAGE_RETURNED': 'No image was generated. Please try again.',
-  'UNKNOWN_ERROR': 'An unexpected error occurred. Please try again.'
+  'UNKNOWN_ERROR': 'An unexpected error occurred. Please try again.',
+  
+  // Credit system
+  'insufficientCredits': 'Not enough credits to generate background. Please get more credits.',
+  'creditConsumptionFailed': 'Failed to process credit payment. Please try again.',
+  'creditsRequired': 'This action requires 1 credit.'
 };
