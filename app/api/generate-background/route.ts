@@ -84,9 +84,15 @@ export async function POST(request: NextRequest) {
     const textPart = { text: prompt };
     
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
+      model: 'gemini-3-pro-image-preview',
       contents: { parts: [compositeImagePart, textPart] },
-      config: { responseModalities: [Modality.IMAGE, Modality.TEXT] },
+      config: {
+        responseModalities: [Modality.IMAGE, Modality.TEXT],
+        imageConfig: {
+          aspectRatio: '16:9',
+          imageSize: '1K',
+        },
+      },
     });
     
     // Check if response has candidates and content
